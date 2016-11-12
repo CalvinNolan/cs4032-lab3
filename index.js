@@ -46,7 +46,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
                             'JOIN_ID:' + message.clientId + '\n';
 
             workers[message.clientId].send({cmd: 'writeMessage', message: joinNewAck});
-            workers[message.clientId].send({cmd: 'writeMessage', message: message.clientName + ' has joined ' + message.chatroom + '\n'});
+            var message = 'CHAT:' + chatrooms[message.chatroom].roomId + '\n' +
+                          'CLIENT_NAME:' + message.clientName + '\n' +
+                          'MESSAGE:' + message.clientName + ' has joined ' + message.chatroom + '\n';
+            workers[message.clientId].send({cmd: 'writeMessage', message});
           } else {
             var uniqueName = true;
             var chatroom = chatrooms[message.chatroom];
