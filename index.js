@@ -1,6 +1,7 @@
 const os = require('os');
 const net = require('net');
 const cluster = require('cluster');
+const delimiter = '\n';
 
 if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
  console.log("Pass through the port number as command line arguments\n Example: 'node index.js 80'");
@@ -46,10 +47,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
                             'JOIN_ID:' + message.clientId + '\n';
 
             workers[message.clientId].send({cmd: 'writeMessage', message: joinNewAck});
-            var message = 'CHAT:' + chatrooms[message.chatroom].roomId + '\n' +
+            var chatMessage = 'CHAT:' + chatrooms[message.chatroom].roomId + '\n' +
                           'CLIENT_NAME:' + message.clientName + '\n' +
                           'MESSAGE:' + message.clientName + ' has joined ' + message.chatroom + '\n';
-            workers[message.clientId].send({cmd: 'writeMessage', message});
+            workers[message.clientId].send({cmd: 'writeMessage', message: chatMessage});
           } else {
             var uniqueName = true;
             var chatroom = chatrooms[message.chatroom];
@@ -72,10 +73,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
               chatroom.clientIds[message.clientId] = message.clientName;
               for (var i = 0; i < chatroom.clientIds.length; i++) {
                 if (typeof(chatroom.clientIds[i]) !== 'undefined') {
-                  var message = 'CHAT:' + chatroom.roomId + '\n' +
+                  var chatMessage = 'CHAT:' + chatroom.roomId + '\n' +
                                 'CLIENT_NAME:' + message.clientName + '\n' +
                                 'MESSAGE:' + message.clientName + ' has joined ' + message.chatroom + '\n';
-                  workers[i].send({cmd: 'writeMessage', message});
+                  workers[i].send({cmd: 'writeMessage', message: chatMessage});
                 }
               }
             } else {
@@ -129,10 +130,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
                 workers[message.clientId].send({cmd: 'writeMessage', message: leaveRoomAck});
                 for (var i = 0; i < chatroom.clientIds.length; i++) {
                   if (typeof(chatroom.clientIds[i]) !== 'undefined') {
-                    var message = 'CHAT:' + chatroom.roomId + '\n' +
+                    var chatMessage = 'CHAT:' + chatroom.roomId + '\n' +
                                   'CLIENT_NAME:' + message.clientName + '\n' +
                                   'MESSAGE:' + message.clientName + ' has left ' + Object.keys(chatrooms)[message.chatroomId] + '\n';
-                    workers[i].send({cmd: 'writeMessage', message});
+                    workers[i].send({cmd: 'writeMessage', message: chatMessage});
                   }
                 }
               } else {
@@ -151,10 +152,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
               chatrooms[key].clientIds[message.clientId] = undefined;
               for(var i = 0; i < chatrooms[key].clientIds.length; i++) {
                 if (typeof(chatrooms[key].clientIds[i]) !== 'undefined') {
-                  var message = 'CHAT:' + chatrooms[key].roomId + '\n' +
+                  var chatMessage = 'CHAT:' + chatrooms[key].roomId + '\n' +
                                 'CLIENT_NAME:' + clientName + '\n' +
                                 'MESSAGE:' + clientName + ' has left ' + key + '\n';
-                  workers[i].send({cmd: 'writeMessage', message});
+                  workers[i].send({cmd: 'writeMessage', message: chatMessage});
                 }
               }
             }
@@ -207,8 +208,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
         } else if (data.toString().substring(0, 12) === "KILL_SERVICE") {
           process.send({ cmd: 'killService' });
         } else if (isJoinRoomRequest(data.toString())) {
-          console.log('join room request');
-          var splitData = data.toString().split("\n");
+          var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'joinChatroom', 
             clientId: cluster.worker.id,
@@ -216,7 +216,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
             clientName: splitData[3].substring(12, splitData[3].length)
           });
         } else if (isLeaveRoomRequest(data.toString())) {
-          var splitData = data.toString().split("\n");
+          var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'leaveChatroom', 
             chatroomId: splitData[0].substring(15, splitData[0].length),
@@ -224,7 +224,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
             clientName: splitData[2].substring(12, splitData[2].length)
           });
         } else if (isSendMessage(data.toString())) {
-          var splitData = data.toString().split("\n");
+          var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'postMessage', 
             chatroomId: splitData[0].substring(5, splitData[0].length),
@@ -233,7 +233,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
             clientMessage: splitData[3].substring(8, splitData[3].length)
           });
         } else if (isDisconnectRequest(data.toString())) {
-          var splitData = data.toString().split("\n");
+          var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'disconnectClient', 
             clientId: cluster.worker.id,
@@ -260,25 +260,25 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
   };
 
   function isJoinRoomRequest(request) {
-    const splitRequest =  request.split('\n');
+    const splitRequest =  request.split(delimiter);
     return ((splitRequest[0].substring(0, 14) === "JOIN_CHATROOM:") && (splitRequest[1].substring(0, 10) === "CLIENT_IP:") && 
               (splitRequest[2].substring(0, 5) === "PORT:") && (splitRequest[3].substring(0, 12) === "CLIENT_NAME:"));
   };
 
   function isLeaveRoomRequest(request) {
-    const splitRequest =  request.split('\n');
+    const splitRequest =  request.split(delimiter);
     return ((splitRequest[0].substring(0, 15) === "LEAVE_CHATROOM:") && (splitRequest[1].substring(0, 8) === "JOIN_ID:") && 
               (splitRequest[2].substring(0, 12) === "CLIENT_NAME:"));
   };
 
   function isSendMessage(request) {
-    const splitRequest =  request.split('\n');
+    const splitRequest =  request.split(delimiter);
     return ((splitRequest[0].substring(0, 5) === "CHAT:") && (splitRequest[1].substring(0, 8) === "JOIN_ID:") && 
               (splitRequest[2].substring(0, 12) === "CLIENT_NAME:") && (splitRequest[3].substring(0, 8) === "MESSAGE:"));
   };
 
   function isDisconnectRequest(request) {
-    const splitRequest =  request.split("\n");
+    const splitRequest =  request.split(delimiter);
     return ((splitRequest[0].substring(0, 11) === "DISCONNECT:") && (splitRequest[1].substring(0, 5) === "PORT:") && 
               (splitRequest[2].substring(0, 12) === "CLIENT_NAME:"));
   };
