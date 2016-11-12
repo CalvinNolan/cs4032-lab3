@@ -69,7 +69,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
               chatroom.clientIds[message.clientId] = message.clientName;
               for (var i = 0; i < chatroom.clientIds.length; i++) {
                 if (typeof(chatroom.clientIds[i]) !== 'undefined') {
-                  workers[i].send({cmd: 'writeMessage', message: message.clientName + ' has joined ' + message.chatroom + '\n'});
+                  var message = 'CHAT:' + chatroom.roomId + '\n' +
+                                'CLIENT_NAME:' + message.clientName + '\n' +
+                                'MESSAGE:' + message.clientName + ' has joined ' + message.chatroom + '\n';
+                  workers[i].send({cmd: 'writeMessage', message});
                 }
               }
             } else {
@@ -123,7 +126,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
                 workers[message.clientId].send({cmd: 'writeMessage', message: leaveRoomAck});
                 for (var i = 0; i < chatroom.clientIds.length; i++) {
                   if (typeof(chatroom.clientIds[i]) !== 'undefined') {
-                    workers[i].send({cmd: 'writeMessage', message: message.clientName + ' has left ' + Object.keys(chatrooms)[message.chatroomId] + '\n'});
+                    var message = 'CHAT:' + chatroom.roomId + '\n' +
+                                  'CLIENT_NAME:' + message.clientName + '\n' +
+                                  'MESSAGE:' + message.clientName + ' has left ' + Object.keys(chatrooms)[message.chatroomId] + '\n';
+                    workers[i].send({cmd: 'writeMessage', message});
                   }
                 }
               } else {
@@ -142,7 +148,10 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
               chatrooms[key].clientIds[message.clientId] = undefined;
               for(var i = 0; i < chatrooms[key].clientIds.length; i++) {
                 if (typeof(chatrooms[key].clientIds[i]) !== 'undefined') {
-                  workers[i].send({cmd: 'writeMessage', message: clientName + ' has left ' + key + '\n'});
+                  var message = 'CHAT:' + chatrooms[key].roomId + '\n' +
+                                'CLIENT_NAME:' + clientName + '\n' +
+                                'MESSAGE:' + clientName + ' has left ' + key + '\n';
+                  workers[i].send({cmd: 'writeMessage', message});
                 }
               }
             }
@@ -201,7 +210,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
             cmd: 'joinChatroom', 
             clientId: cluster.worker.id,
             chatroom: splitData[0].substring(14, splitData[0].length),
-            clientName: splitData[3].substring(12, splitData[3].length - 2)
+            clientName: splitData[3].substring(12, splitData[3].length)
           });
         } else if (isLeaveRoomRequest(data.toString())) {
           var splitData = data.toString().split("\n");
@@ -209,7 +218,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
             cmd: 'leaveChatroom', 
             chatroomId: splitData[0].substring(15, splitData[0].length),
             clientId: splitData[1].substring(8, splitData[1].length),
-            clientName: splitData[2].substring(12, splitData[2].length - 2)
+            clientName: splitData[2].substring(12, splitData[2].length)
           });
         } else if (isSendMessage(data.toString())) {
           var splitData = data.toString().split("\n");
