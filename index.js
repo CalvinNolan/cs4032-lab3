@@ -40,8 +40,8 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
 
             chatrooms[message.chatroom].clientIds[message.clientId] = message.clientName;
             const joinNewAck = 'JOINED_CHATROOM:' + message.chatroom + '\n' +
-                            'SERVER_IP:' + '0' + '\n' +
-                            'PORT:' + '0' + '\n' +
+                            'SERVER_IP:' + getCurrentIP() + '\n' +
+                            'PORT:' + process.argv[2] + '\n' +
                             'ROOM_REF:' + chatrooms[message.chatroom].roomId + '\n' +
                             'JOIN_ID:' + message.clientId + '\n';
 
@@ -59,8 +59,8 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
 
             if (uniqueName) {
               const joinOldAck = 'JOINED_CHATROOM:' + message.chatroom + '\n' +
-                              'SERVER_IP:' + '0' + '\n' +
-                              'PORT:' + '0' + '\n' +
+                              'SERVER_IP:' + getCurrentIP() + '\n' +
+                              'PORT:' + process.argv[2] + '\n' +
                               'ROOM_REF:' + chatroom.roomId + '\n' +
                               'JOIN_ID:' + message.clientId + '\n';
 
@@ -270,18 +270,18 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
     return ((splitRequest[0].substring(0, 11) === "DISCONNECT:") && (splitRequest[1].substring(0, 5) === "PORT:") && 
               (splitRequest[2].substring(0, 12) === "CLIENT_NAME:"));
   };
+};
 
-  function getCurrentIP() {
-    var interfaces = os.networkInterfaces();
-    var addresses = [];
-    for (var k in interfaces) {
-        for (var k2 in interfaces[k]) {
-            var address = interfaces[k][k2];
-            if (address.family === 'IPv4' && !address.internal) {
-                addresses.push(address.address);
-            }
-        }
-    }
-    return addresses[0];
-  };
+function getCurrentIP() {
+  var interfaces = os.networkInterfaces();
+  var addresses = [];
+  for (var k in interfaces) {
+      for (var k2 in interfaces[k]) {
+          var address = interfaces[k][k2];
+          if (address.family === 'IPv4' && !address.internal) {
+              addresses.push(address.address);
+          }
+      }
+  }
+  return addresses[0];
 };
