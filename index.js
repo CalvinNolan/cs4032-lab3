@@ -2,6 +2,7 @@ const os = require('os');
 const net = require('net');
 const cluster = require('cluster');
 const delimiter = '\n';
+const threadNo = 12;
 
 if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
  console.log("Pass through the port number as command line arguments\n Example: 'node index.js 80'");
@@ -12,7 +13,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
     const workers = [];
     const availability = [];
     const chatrooms = [];
-    for(var i = 1; i <= 8; i++) {
+    for(var i = 1; i <= threadNo; i++) {
       workers[i] = cluster.fork();
       availability[i] = true;
     }
@@ -203,6 +204,8 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
 
       // Respond to 'HELO' and 'KILL_SERVICE' requests
       client.on('data', (data) => {
+        console.log('IN:');
+        console.log(data.toString());
         if (data.toString().substring(0, 4) === "HELO") {
           client.write(data + "IP:" + getCurrentIP() + "\nPort:" + process.argv[2] + "\nStudentID:13325852\n");
         } else if (data.toString().substring(0, 12) === "KILL_SERVICE") {
@@ -252,6 +255,8 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
         server.emit('connection', c);
         client = c;
       } else if (msg.cmd === 'writeMessage' && typeof(client) !== 'undefined') {
+        console.log('OUT:');
+        console.log(msg.message);
         client.write(msg.message);
       } else if (msg.cmd === 'closeConnection' && typeof(client) !== 'undefined') {
         client.end();
