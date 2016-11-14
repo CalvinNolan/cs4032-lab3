@@ -181,10 +181,12 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
       // the thread pool.
       if (threadId <= workers.length) {
         workers[threadId].send({cmd: 'conn'}, c);
+        console.log('New worker (old) ' + threadId);
         availability[threadId] = false;
       } else {
         workers[threadId] = cluster.fork();
         workers[threadId].send({cmd: 'conn'}, c);
+        console.log('New worker (new) ' + threadId);
         availability[threadId] = false;
       }
     }).listen(process.argv[2]);
@@ -253,6 +255,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
     process.on('message', function(msg, c) {
       if (msg.cmd === 'conn') {
         server.emit('connection', c);
+        console.log('connected new worker!');
         client = c;
       } else if (msg.cmd === 'writeMessage' && typeof(client) !== 'undefined') {
         console.log('OUT:');
