@@ -212,32 +212,32 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
           process.send({ 
             cmd: 'joinChatroom', 
             clientId: cluster.worker.id,
-            chatroom: splitData[0].substring(14, splitData[0].length),
-            clientName: splitData[3].substring(12, splitData[3].length)
+            chatroom: splitData[0].substring(14, splitData[0].length).trim(),
+            clientName: splitData[3].substring(12, splitData[3].length).trim()
           });
         } else if (isLeaveRoomRequest(data.toString())) {
           var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'leaveChatroom', 
-            chatroomId: splitData[0].substring(15, splitData[0].length),
-            clientId: splitData[1].substring(8, splitData[1].length),
-            clientName: splitData[2].substring(12, splitData[2].length)
+            chatroomId: splitData[0].substring(15, splitData[0].length).trim(),
+            clientId: splitData[1].substring(8, splitData[1].length).trim(),
+            clientName: splitData[2].substring(12, splitData[2].length).trim()
           });
         } else if (isSendMessage(data.toString())) {
           var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'postMessage', 
-            chatroomId: splitData[0].substring(5, splitData[0].length),
-            clientId: splitData[1].substring(8, splitData[1].length),
-            clientName: splitData[2].substring(12, splitData[2].length),
-            clientMessage: splitData[3].substring(8, splitData[3].length)
+            chatroomId: splitData[0].substring(5, splitData[0].length).trim(),
+            clientId: splitData[1].substring(8, splitData[1].length).trim(),
+            clientName: splitData[2].substring(12, splitData[2].length).trim(),
+            clientMessage: splitData[3].substring(8, splitData[3].length).trim()
           });
         } else if (isDisconnectRequest(data.toString())) {
           var splitData = data.toString().split(delimiter);
           process.send({ 
             cmd: 'disconnectClient', 
             clientId: cluster.worker.id,
-            clientName: splitData[0].substring(11, splitData[0].length)
+            clientName: splitData[0].substring(11, splitData[0].length).trim()
           });
         } else {
           // Anything goes here.
