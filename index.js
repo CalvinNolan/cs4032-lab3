@@ -124,7 +124,6 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
           if (typeof(chatroom) !== 'undefined') {
             if (typeof(chatroom.clientIds[message.clientId]) !== 'undefined') {
               if (chatroom.clientIds[message.clientId] === message.clientName) {
-                chatroom.clientIds[message.clientId] = undefined;
                 var leaveRoomAck = 'LEFT_CHATROOM:' + chatroom.roomId + '\n' + 
                                    'JOIN_ID:' + message.clientId + '\n'
                 workers[message.clientId].send({cmd: 'writeMessage', message: leaveRoomAck});
@@ -136,6 +135,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
                     workers[i].send({cmd: 'writeMessage', message: chatMessage});
                   }
                 }
+                chatroom.clientIds[message.clientId] = undefined;
               } else {
                 workers[message.clientId].send({cmd: 'writeMessage', message: 'ERROR_CODE:2\nERROR_DESCRIPTION:JOIN_ID and CLIENT_NAME do not match.'});
               }
