@@ -254,7 +254,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
         console.log(msg.message);
         client.write(msg.message);
       } else if (msg.cmd === 'closeConnection' && typeof(client) !== 'undefined') {
-        client.end();
+        client.destroy();
       }
     });
   };
