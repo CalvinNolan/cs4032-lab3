@@ -142,7 +142,6 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
           for(var key in chatrooms) {
             if (typeof(chatrooms[key].clientIds[message.clientId]) !== 'undefined') {
               var clientName = chatrooms[key].clientIds[message.clientId];
-              chatrooms[key].clientIds[message.clientId] = undefined;
               for(var i = 0; i < chatrooms[key].clientIds.length; i++) {
                 if (typeof(chatrooms[key].clientIds[i]) !== 'undefined') {
                   var chatMessage = 'CHAT:' + chatrooms[key].roomId + '\n' +
@@ -151,6 +150,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
                   workers[i].send({cmd: 'writeMessage', message: chatMessage});
                 }
               }
+              chatrooms[key].clientIds[message.clientId] = undefined;
             }
           }
 
