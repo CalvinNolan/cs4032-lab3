@@ -188,16 +188,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
     const server = net.createServer();
 
     server.on('connection', (client) => {
-      // Send a message back to the master thread on close
-      // to free this thread for another client.
       console.log('new connection on ' + cluster.worker.id);
-      client.on('close', () => {
-        process.send({ 
-          cmd: 'disconnectClient', 
-          clientId: cluster.worker.id,
-          clientName: ''
-        });
-      });
 
       // Respond to 'HELO' and 'KILL_SERVICE' requests
       client.on('data', (data) => {
