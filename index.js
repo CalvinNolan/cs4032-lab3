@@ -198,7 +198,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
 
       // Respond to 'HELO' and 'KILL_SERVICE' requests
       client.on('data', (data) => {
-        console.log('IN:');
+        console.log('IN ' + cluster.worker.id + ': ');
         console.log(data.toString());
         if (data.toString().substring(0, 4) === "HELO") {
           client.write(data + "IP:" + getCurrentIP() + "\nPort:" + process.argv[2] + "\nStudentID:13325852\n");
@@ -250,7 +250,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
         console.log('connected new worker!');
         client = c;
       } else if (msg.cmd === 'writeMessage' && typeof(client) !== 'undefined') {
-        console.log('OUT:');
+        console.log('OUT ' + cluster.worker.id + ': ');
         console.log(msg.message);
         client.write(msg.message);
       } else if (msg.cmd === 'closeConnection' && typeof(client) !== 'undefined') {
