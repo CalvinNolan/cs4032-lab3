@@ -185,9 +185,12 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
   } 
   // Worker Threads
   else {
-    const server = net.createServer((client) => {
+    const server = net.createServer();
+
+    server.on('connection', (client) => {
       // Send a message back to the master thread on close
       // to free this thread for another client.
+      console.log('new connection on ' + cluster.worker.id);
       client.on('close', () => {
         process.send({ 
           cmd: 'disconnectClient', 
@@ -243,19 +246,18 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
     });
 
     // Assign this thread's connection via the master thread.
-    var client;
+    var mainClient;
     process.on('message', function(msg, c) {
       if (msg.cmd === 'conn') {
         server.emit('connection', c);
-        console.log('connected new worker!');
-        client = c;
-      } else if (msg.cmd === 'writeMessage' && typeof(client) !== 'undefined') {
+        mainClient = c;
+      } else if (msg.cmd === 'writeMessage' && typeof(mainClient) !== 'undefined') {
         console.log('OUT ' + cluster.worker.id + ': ');
         console.log(msg.message);
-        client.write(msg.message);
-      } else if (msg.cmd === 'closeConnection' && typeof(client) !== 'undefined') {
-        console.log('Destroying worker soon' + cluster.worker.id);
-        setTimeout(client.destroy, 10);
+        mainClient.write(msg.message);
+      } else if (msg.cmd === 'closeConnection' && typeof(mainClient) !== 'undefined') {
+        console.log('Destroying worker' + cluster.worker.id);
+        mainClient.destroy();
       }
     });
   };
