@@ -189,7 +189,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
 
     server.on('connection', (client) => {
       console.log('new connection on ' + cluster.worker.id);
-      console.log(client.address());
+      console.log(client.localAddress + ' : ' + client.localPort);
 
       // Respond to 'HELO' and 'KILL_SERVICE' requests
       client.on('data', (data) => {
