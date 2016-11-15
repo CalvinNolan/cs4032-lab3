@@ -3,6 +3,7 @@ const net = require('net');
 const cluster = require('cluster');
 const delimiter = '\n';
 const threadNo = 12;
+const threadPooling = (typeof(process.argv[3]) !== 'undefined' && process.argv[3]);
 
 if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
  console.log("Pass through the port number as command line arguments\n Example: 'node index.js 80'");
@@ -24,7 +25,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
       worker.on('message', (message) => {
         // Free the thread in the pool.
         if (message.cmd && message.cmd == 'freeThread') {
-          availability[message.id] = true;
+          availability[message.id] = threadPooling;
         } 
         // Kill each worker and finally the service.
         else if (message.cmd && message.cmd == 'killService') {
@@ -155,7 +156,7 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
           }
 
           workers[message.clientId].send({cmd: 'closeConnection'});
-          availability[message.clientId] = true;
+          availability[message.clientId] = threadPooling;
         }
       });
     });
