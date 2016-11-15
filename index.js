@@ -2,7 +2,7 @@ const os = require('os');
 const net = require('net');
 const cluster = require('cluster');
 const delimiter = '\n';
-const threadNo = 8;
+const threadNo = 12;
 
 if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
  console.log("Pass through the port number as command line arguments\n Example: 'node index.js 80'");
@@ -142,14 +142,12 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
           for(var key in chatrooms) {
             if (typeof(chatrooms[key].clientIds[message.clientId]) !== 'undefined') {
               var clientName = chatrooms[key].clientIds[message.clientId];
-              if (chatrooms[key].clientIds.length > 1) {
-                for(var i = 0; i < chatrooms[key].clientIds.length; i++) {
-                  if (typeof(chatrooms[key].clientIds[i]) !== 'undefined') {
-                    var chatMessage = 'CHAT:' + chatrooms[key].roomId + '\n' +
-                                  'CLIENT_NAME:' + clientName + '\n' +
-                                  'MESSAGE:' + clientName + ' has left this chatroom.\n\n';
-                    workers[i].send({cmd: 'writeMessage', message: chatMessage});
-                  }
+              for(var i = 0; i < chatrooms[key].clientIds.length; i++) {
+                if (typeof(chatrooms[key].clientIds[i]) !== 'undefined') {
+                  var chatMessage = 'CHAT:' + chatrooms[key].roomId + '\n' +
+                                'CLIENT_NAME:' + clientName + '\n' +
+                                'MESSAGE:' + clientName + ' has left this chatroom.\n\n';
+                  workers[i].send({cmd: 'writeMessage', message: chatMessage});
                 }
               }
               chatrooms[key].clientIds[message.clientId] = undefined;
@@ -158,7 +156,6 @@ if (cluster.isMaster && ((typeof(process.argv[2]) === 'undefined'))) {
 
           workers[message.clientId].send({cmd: 'closeConnection'});
           availability[message.clientId] = true;
-          console.log("Worker " + message.clientId + " is freed");
         }
       });
     });
